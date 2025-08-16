@@ -71,5 +71,8 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
       const newTyEnv = { ...tyEnv, [t.name]: ty };
       return typecheck(t.rest, newTyEnv);
     }
+    case "objectNew":
+    case "objectGet":
+      throw new Error("TODO");
   }
 };
