@@ -345,6 +345,26 @@ describe("typecheck", () => {
         retType: { tag: "Number" },
       });
     });
+
+    it("throws exception when accessing property on non-object", () => {
+      expect(() => typecheck(
+        parseObj(`
+        const x = 42;
+        x.foo;
+      `),
+        {},
+      )).toThrow("object type expected");
+    });
+
+    it("throws exception for unknown property name", () => {
+      expect(() => typecheck(
+        parseObj(`
+        const x = { foo: 1 };
+        x.bar;
+      `),
+        {},
+      )).toThrow("unknown property name: bar");
+    });
   });
 
   describe("combined expressions", () => {

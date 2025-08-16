@@ -297,6 +297,12 @@ describe("typeEq", () => {
       expect(typeEq(ty1, ty2)).toBe(false);
     });
 
+    it("returns false for non-Object vs Object types", () => {
+      const ty1: Type = { tag: "Number" };
+      const ty2: Type = { tag: "Object", props: [] };
+      expect(typeEq(ty1, ty2)).toBe(false);
+    });
+
     it("returns true for Object types with function properties", () => {
       const funcType: Type = {
         tag: "Func",
