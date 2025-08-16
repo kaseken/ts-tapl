@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read --allow-write --allow-env --allow-sys",
+    "test:coverage": "deno test --allow-read --allow-write --allow-env --allow-sys --coverage=coverage",
+    "fmt": "deno fmt",
+    "lint": "deno lint",
+    "lint:fix": "deno lint --fix"
+  },
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"]
+  }
+}
