@@ -24,16 +24,16 @@ export const typeEq = (ty1: Type, ty2: Type): boolean => {
     case "Object": {
       if (ty1.tag !== "Object") return false;
       if (ty1.props.length !== ty2.props.length) return false;
-      const sortedTy1Props = [...ty1.props].sort((a, b) =>
+      const ty1Props = [...ty1.props].sort((a, b) =>
         a.name.localeCompare(b.name)
       );
-      const sortedTy2Props = [...ty2.props].sort((a, b) =>
+      const ty2Props = [...ty2.props].sort((a, b) =>
         a.name.localeCompare(b.name)
       );
-      for (let i = 0; i < sortedTy1Props.length; i++) {
+      for (let i = 0; i < ty1Props.length; i++) {
         if (
-          sortedTy1Props[i].name !== sortedTy2Props[i].name ||
-          !typeEq(sortedTy1Props[i].type, sortedTy2Props[i].type)
+          ty1Props[i].name !== ty2Props[i].name ||
+          !typeEq(ty1Props[i].type, ty2Props[i].type)
         ) {
           return false;
         }

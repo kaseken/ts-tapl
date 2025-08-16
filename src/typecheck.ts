@@ -71,8 +71,23 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
       const newTyEnv = { ...tyEnv, [t.name]: ty };
       return typecheck(t.rest, newTyEnv);
     }
-    case "objectNew":
-    case "objectGet":
-      throw new Error("TODO");
+    case "objectNew": {
+      const props = t.props.map(({ name, term }) => ({
+        name,
+        type: typecheck(term, tyEnv),
+      }));
+      return { tag: "Object", props };
+    }
+    case "objectGet": {
+      const objectTy = typecheck(t.obj, tyEnv);
+      if (objectTy.tag !== "Object") {
+        error("object type expected", t.obj);
+      }
+      const prop = objectTy.props.find((p) => p.name === t.propName);
+      if (!prop) {
+        error(`unknown property name: ${t.propName}`, t);
+      }
+      return prop.type;
+    }
   }
 };
