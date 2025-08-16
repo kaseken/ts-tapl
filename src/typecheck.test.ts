@@ -1,6 +1,6 @@
 import { describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { parseArith, parseBasic } from "npm:tiny-ts-parser";
+import { parseArith, parseBasic, parseObj } from "npm:tiny-ts-parser";
 import { typecheck } from "./typecheck.ts";
 
 describe("typecheck", () => {
@@ -169,6 +169,83 @@ describe("typecheck", () => {
     it("parses `true; 42` correctly", () => {
       const result = typecheck(parseBasic("true; 42"), {});
       expect(result).toEqual({ tag: "Number" });
+    });
+  });
+
+  describe("object creation (objectNew)", () => {
+    it("creates object with multiple properties correctly", () => {
+      const result = typecheck(
+        parseObj(`
+        const x = { foo: 1, bar: true };
+      `),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Object",
+        props: [
+          { name: "foo", type: { tag: "Number" } },
+          { name: "bar", type: { tag: "Boolean" } },
+        ],
+      });
+    });
+
+    it("creates object with function property correctly", () => {
+      const result = typecheck(
+        parseObj(`
+        const obj = { f: (x: number) => x + 1 };
+      `),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Object",
+        props: [{
+          name: "f",
+          type: {
+            tag: "Func",
+            params: [{ name: "x", type: { tag: "Number" } }],
+            retType: { tag: "Number" },
+          },
+        }],
+      });
+    });
+  });
+
+  describe("object property access (objectGet)", () => {
+    it("accesses number property correctly", () => {
+      const result = typecheck(
+        parseObj(`
+        const x = { foo: 1, bar: true };
+        x.foo;
+      `),
+        {},
+      );
+      expect(result).toEqual({ tag: "Number" });
+    });
+
+    it("accesses boolean property correctly", () => {
+      const result = typecheck(
+        parseObj(`
+        const x = { foo: 1, bar: true };
+        x.bar;
+      `),
+        {},
+      );
+      expect(result).toEqual({ tag: "Boolean" });
+    });
+
+    it("accesses function property correctly", () => {
+      const result = typecheck(
+        parseObj(`
+        const obj = { f: (x: number) => x + 1 };
+        obj.f;
+      `),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Func",
+        params: [{ name: "x", type: { tag: "Number" } }],
+        retType: { tag: "Number" },
+      });
     });
   });
 

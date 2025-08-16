@@ -208,4 +208,126 @@ describe("typeEq", () => {
       expect(typeEq(ty1, ty2)).toBe(true);
     });
   });
+
+  describe("Object types", () => {
+    it("returns true for empty Object types", () => {
+      const ty1: Type = { tag: "Object", props: [] };
+      const ty2: Type = { tag: "Object", props: [] };
+      expect(typeEq(ty1, ty2)).toBe(true);
+    });
+
+    it("returns true for Object types with same properties in same order", () => {
+      const ty1: Type = {
+        tag: "Object",
+        props: [
+          { name: "x", type: { tag: "Number" } },
+          { name: "y", type: { tag: "Boolean" } },
+        ],
+      };
+      const ty2: Type = {
+        tag: "Object",
+        props: [
+          { name: "x", type: { tag: "Number" } },
+          { name: "y", type: { tag: "Boolean" } },
+        ],
+      };
+      expect(typeEq(ty1, ty2)).toBe(true);
+    });
+
+    it("returns true for Object types with same properties in different order", () => {
+      const ty1: Type = {
+        tag: "Object",
+        props: [
+          { name: "x", type: { tag: "Number" } },
+          { name: "y", type: { tag: "Boolean" } },
+        ],
+      };
+      const ty2: Type = {
+        tag: "Object",
+        props: [
+          { name: "y", type: { tag: "Boolean" } },
+          { name: "x", type: { tag: "Number" } },
+        ],
+      };
+      expect(typeEq(ty1, ty2)).toBe(true);
+    });
+
+    it("returns false for Object types with different property counts", () => {
+      const ty1: Type = {
+        tag: "Object",
+        props: [{ name: "x", type: { tag: "Number" } }],
+      };
+      const ty2: Type = {
+        tag: "Object",
+        props: [
+          { name: "x", type: { tag: "Number" } },
+          { name: "y", type: { tag: "Boolean" } },
+        ],
+      };
+      expect(typeEq(ty1, ty2)).toBe(false);
+    });
+
+    it("returns false for Object types with different property names", () => {
+      const ty1: Type = {
+        tag: "Object",
+        props: [{ name: "x", type: { tag: "Number" } }],
+      };
+      const ty2: Type = {
+        tag: "Object",
+        props: [{ name: "y", type: { tag: "Number" } }],
+      };
+      expect(typeEq(ty1, ty2)).toBe(false);
+    });
+
+    it("returns false for Object types with different property types", () => {
+      const ty1: Type = {
+        tag: "Object",
+        props: [{ name: "x", type: { tag: "Number" } }],
+      };
+      const ty2: Type = {
+        tag: "Object",
+        props: [{ name: "x", type: { tag: "Boolean" } }],
+      };
+      expect(typeEq(ty1, ty2)).toBe(false);
+    });
+
+    it("returns false for Object vs non-Object types", () => {
+      const ty1: Type = { tag: "Object", props: [] };
+      const ty2: Type = { tag: "Number" };
+      expect(typeEq(ty1, ty2)).toBe(false);
+    });
+
+    it("returns true for Object types with function properties", () => {
+      const funcType: Type = {
+        tag: "Func",
+        params: [{ name: "x", type: { tag: "Number" } }],
+        retType: { tag: "Boolean" },
+      };
+      const ty1: Type = {
+        tag: "Object",
+        props: [{ name: "method", type: funcType }],
+      };
+      const ty2: Type = {
+        tag: "Object",
+        props: [{ name: "method", type: funcType }],
+      };
+      expect(typeEq(ty1, ty2)).toBe(true);
+    });
+
+    it("returns true for nested Object types", () => {
+      const innerObj: Type = {
+        tag: "Object",
+        props: [{ name: "value", type: { tag: "Number" } }],
+      };
+      const ty1: Type = {
+        tag: "Object",
+        props: [{ name: "nested", type: innerObj }],
+      };
+      const ty2: Type = {
+        tag: "Object",
+        props: [{ name: "nested", type: innerObj }],
+      };
+      expect(typeEq(ty1, ty2)).toBe(true);
+    });
+  });
 });
