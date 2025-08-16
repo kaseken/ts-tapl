@@ -1,6 +1,11 @@
 import { describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { parseArith, parseBasic, parseObj } from "npm:tiny-ts-parser";
+import {
+  parseArith,
+  parseBasic,
+  parseObj,
+  parseRecFunc,
+} from "npm:tiny-ts-parser";
 import { typecheck } from "./typecheck.ts";
 
 describe("typecheck", () => {
@@ -141,6 +146,99 @@ describe("typecheck", () => {
       expect(() => typecheck(parseBasic("42(1)"), {})).toThrow(
         "function type expected.",
       );
+    });
+  });
+
+  describe("recursive functions (recFunc)", () => {
+    it("parses simple recursive function", () => {
+      const result = typecheck(
+        parseRecFunc("function fact(n: number): number { return n; }; fact"),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Func",
+        params: [{ name: "n", type: { tag: "Number" } }],
+        retType: { tag: "Number" },
+      });
+    });
+
+    it("parses recursive function with multiple parameters", () => {
+      const result = typecheck(
+        parseRecFunc(
+          "function add(x: number, y: number): number { return x + y; }; add",
+        ),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Func",
+        params: [
+          { name: "x", type: { tag: "Number" } },
+          { name: "y", type: { tag: "Number" } },
+        ],
+        retType: { tag: "Number" },
+      });
+    });
+
+    it("parses recursive function returning boolean", () => {
+      const result = typecheck(
+        parseRecFunc(
+          "function check(x: number): boolean { return true; }; check",
+        ),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Func",
+        params: [{ name: "x", type: { tag: "Number" } }],
+        retType: { tag: "Boolean" },
+      });
+    });
+
+    it("throws exception for wrong return type", () => {
+      expect(() =>
+        typecheck(
+          parseRecFunc("function bad(x: number): number { return true; }; bad"),
+          {},
+        )
+      ).toThrow(
+        "wrong return type",
+      );
+    });
+
+    it("allows self-reference in function body", () => {
+      const result = typecheck(
+        parseRecFunc("function fib(n: number): number { return fib(n); }; fib"),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Func",
+        params: [{ name: "n", type: { tag: "Number" } }],
+        retType: { tag: "Number" },
+      });
+    });
+
+    it("parses recursive function with conditional", () => {
+      const result = typecheck(
+        parseRecFunc(
+          "function test(n: number): number { return true ? 1 : test(n); }; test",
+        ),
+        {},
+      );
+      expect(result).toEqual({
+        tag: "Func",
+        params: [{ name: "n", type: { tag: "Number" } }],
+        retType: { tag: "Number" },
+      });
+    });
+
+    it("parses recursive function call correctly", () => {
+      const result = typecheck(
+        parseRecFunc(`
+          function f(x: number): number { return f(x); }
+          f(0)
+        `),
+        {},
+      );
+      expect(result).toEqual({ tag: "Number" });
     });
   });
 

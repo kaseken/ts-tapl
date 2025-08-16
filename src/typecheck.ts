@@ -89,5 +89,22 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
       }
       return prop.type;
     }
+    case "recFunc": {
+      const funcTy: Type = {
+        tag: "Func",
+        params: t.params,
+        retType: t.retType,
+      };
+      const newTyEnv = {
+        [t.funcName]: funcTy,
+        ...tyEnv,
+        ...Object.fromEntries(t.params.map(({ name, type }) => [name, type])),
+      };
+      const retType = typecheck(t.body, newTyEnv);
+      if (!typeEq(t.retType, retType)) {
+        error("wrong return type", t);
+      }
+      return typecheck(t.rest, { ...tyEnv, [t.funcName]: funcTy });
+    }
   }
 };

@@ -27,5 +27,4 @@ jobs:
         with:
           files: ./coverage.lcov
           token: ${{ secrets.CODECOV_TOKEN }}
-          dry_run: ${{ github.ref != 'refs/heads/main' }}
           fail_ci_if_error: true

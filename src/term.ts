@@ -1,5 +1,6 @@
 import { Param } from "./param.ts";
 import { PropertyTerm } from "./propertyTerm.ts";
+import { Type } from "./type.ts";
 
 export type Term =
   | { tag: "true" }
@@ -13,4 +14,12 @@ export type Term =
   | { tag: "seq"; body: Term; rest: Term }
   | { tag: "const"; name: string; init: Term; rest: Term }
   | { tag: "objectNew"; props: PropertyTerm[] }
-  | { tag: "objectGet"; obj: Term; propName: string };
+  | { tag: "objectGet"; obj: Term; propName: string }
+  | {
+    tag: "recFunc";
+    funcName: string;
+    params: Param[];
+    retType: Type;
+    body: Term;
+    rest: Term;
+  };
