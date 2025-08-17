@@ -13,7 +13,7 @@ export const simplifyType = (ty: Type): Type => {
       return ty;
     }
   }
-}
+};
 
 export const expandType = (ty: Type, tyVarName: string, repTy: Type): Type => {
   switch (ty.tag) {
