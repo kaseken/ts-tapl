@@ -4,6 +4,7 @@ import {
   parseArith,
   parseBasic,
   parseObj,
+  parseRec,
   parseRecFunc,
   parseSub,
 } from "npm:tiny-ts-parser";
@@ -407,6 +408,42 @@ describe("typecheck", () => {
       expect(() => typecheck(parseSub(program), {})).toThrow(
         "parameter type mismatch",
       );
+    });
+  });
+
+  describe("recursive types", () => {
+    it("handles NumStream recursive type correctly", () => {
+      const program = `
+        type NumStream = { num: number; rest: () => NumStream };
+        
+        function numbers(n: number): NumStream {
+          return { num: n, rest: () => numbers(n + 1) };
+        }
+        
+        const ns1 = numbers(1);
+        const ns2 = (ns1.rest)();
+        const ns3 = (ns2.rest)();
+        ns3
+      `;
+      const result = typecheck(parseRec(program), {});
+      expect(result).toEqual({
+        tag: "Rec",
+        name: "NumStream",
+        type: {
+          tag: "Object",
+          props: [
+            { name: "num", type: { tag: "Number" } },
+            {
+              name: "rest",
+              type: {
+                tag: "Func",
+                params: [],
+                retType: { tag: "TypeVar", name: "NumStream" },
+              },
+            },
+          ],
+        },
+      });
     });
   });
 });
