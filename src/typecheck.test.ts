@@ -515,5 +515,73 @@ describe("typecheck", () => {
         retType: { tag: "Boolean" },
       });
     });
+
+    it("handles polymorphic function with nested type abstraction parameter", () => {
+      const program = `
+        const foo = <T>(arg1: T, arg2: <T>(x: T) => boolean) => true;
+        foo<number>;
+      `;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "Func",
+        params: [
+          { name: "arg1", type: { tag: "Number" } },
+          {
+            name: "arg2",
+            type: {
+              tag: "TypeAbs",
+              typeParams: ["T"],
+              type: {
+                tag: "Func",
+                params: [{ name: "x", type: { tag: "TypeVar", name: "T" } }],
+                retType: { tag: "Boolean" },
+              },
+            },
+          },
+        ],
+        retType: { tag: "Boolean" },
+      });
+    });
+
+    it("handles complex nested polymorphic functions", () => {
+      const program = `
+        const foo = <T>(arg1: T, arg2: <U>(x: T, y: U) => boolean) => true;
+        const bar = <U>() => foo<U>;
+        bar;
+      `;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "TypeAbs",
+        typeParams: ["U"],
+        type: {
+          tag: "Func",
+          params: [],
+          retType: {
+            tag: "Func",
+            params: [
+              { name: "arg1", type: { tag: "TypeVar", name: "U" } },
+              {
+                name: "arg2",
+                type: {
+                  tag: "TypeAbs",
+                  typeParams: ["U@1"],
+                  type: {
+                    tag: "Func",
+                    params: [
+                      { name: "x", type: { tag: "TypeVar", name: "U" } },
+                      { name: "y", type: { tag: "TypeVar", name: "U@1" } },
+                    ],
+                    retType: { tag: "Boolean" },
+                  },
+                },
+              },
+            ],
+            retType: { tag: "Boolean" },
+          },
+        },
+      });
+    });
   });
 });

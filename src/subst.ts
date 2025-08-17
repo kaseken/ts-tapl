@@ -1,3 +1,4 @@
+import { freshTypeAbs } from "./freshTypeAbs.ts";
 import { Type } from "./type.ts";
 
 export const subst = (ty: Type, tyVarName: string, repTy: Type): Type => {
@@ -23,8 +24,15 @@ export const subst = (ty: Type, tyVarName: string, repTy: Type): Type => {
       return ty.name === tyVarName ? repTy : ty;
     }
     case "TypeAbs": {
-      const newType = subst(ty.type, tyVarName, repTy);
-      return { tag: "TypeAbs", typeParams: ty.typeParams, type: newType };
+      if (ty.typeParams.includes(tyVarName)) {
+        return ty;
+      }
+      const { newTypeParams, newType } = freshTypeAbs(ty.typeParams, ty.type);
+      return {
+        tag: "TypeAbs",
+        typeParams: newTypeParams,
+        type: subst(newType, tyVarName, repTy),
+      };
     }
   }
 };

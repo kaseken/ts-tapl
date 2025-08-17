@@ -108,7 +108,7 @@ describe("subst", () => {
       const result = subst(ty, "T", { tag: "Number" });
       expect(result).toEqual({
         tag: "TypeAbs",
-        typeParams: ["U"],
+        typeParams: ["U@1"],
         type: { tag: "Number" },
       });
     });
@@ -122,7 +122,7 @@ describe("subst", () => {
       const result = subst(ty, "U", { tag: "Boolean" });
       expect(result).toEqual({
         tag: "TypeAbs",
-        typeParams: ["T"],
+        typeParams: ["T@2"],
         type: { tag: "Number" },
       });
     });
@@ -140,11 +140,11 @@ describe("subst", () => {
       const result = subst(ty, "T", { tag: "Boolean" });
       expect(result).toEqual({
         tag: "TypeAbs",
-        typeParams: ["U"],
+        typeParams: ["U@3"],
         type: {
           tag: "Func",
           params: [{ name: "x", type: { tag: "Boolean" } }],
-          retType: { tag: "TypeVar", name: "U" },
+          retType: { tag: "TypeVar", name: "U@3" },
         },
       });
     });

@@ -15,7 +15,9 @@ export const typecheck = (
   enableGenerics: boolean = false,
 ): Type => {
   const typesEqual = (ty1: Type, ty2: Type): boolean =>
-    enableGenerics ? isEqualGenerics(ty1, ty2, toMap(tyVars)) : isEqual(ty1, ty2);
+    enableGenerics
+      ? isEqualGenerics(ty1, ty2, toMap(tyVars))
+      : isEqual(ty1, ty2);
   switch (t.tag) {
     case "true":
       return { tag: "Boolean" };
