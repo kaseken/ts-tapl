@@ -1,6 +1,6 @@
 import { error } from "npm:tiny-ts-parser";
 import { Term } from "./term.ts";
-import { isSubTypeOf, Type, TypeEnv, typeEq } from "./type.ts";
+import { isSubTypeOf, Type, TypeEnv, isEqualNaive } from "./type.ts";
 
 export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
   switch (t.tag) {
@@ -101,7 +101,7 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
         ...Object.fromEntries(t.params.map(({ name, type }) => [name, type])),
       };
       const retType = typecheck(t.body, newTyEnv);
-      if (!typeEq(t.retType, retType)) {
+      if (!isEqualNaive(t.retType, retType)) {
         error("wrong return type", t);
       }
       return typecheck(t.rest, { ...tyEnv, [t.funcName]: funcTy });

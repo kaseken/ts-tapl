@@ -1,19 +1,19 @@
 import { describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { isSubTypeOf, Type, typeEq } from "./type.ts";
+import { isSubTypeOf, Type, isEqualNaive } from "./type.ts";
 
 describe("typeEq", () => {
   describe("Boolean types", () => {
     it("returns true for same Boolean types", () => {
       const ty1: Type = { tag: "Boolean" };
       const ty2: Type = { tag: "Boolean" };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns false for Boolean vs Number", () => {
       const ty1: Type = { tag: "Boolean" };
       const ty2: Type = { tag: "Number" };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns false for Boolean vs Func", () => {
@@ -23,7 +23,7 @@ describe("typeEq", () => {
         params: [],
         retType: { tag: "Boolean" },
       };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
   });
 
@@ -31,19 +31,19 @@ describe("typeEq", () => {
     it("returns true for same Number types", () => {
       const ty1: Type = { tag: "Number" };
       const ty2: Type = { tag: "Number" };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns false for Number vs Boolean", () => {
       const ty1: Type = { tag: "Number" };
       const ty2: Type = { tag: "Boolean" };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns false for Number vs Func", () => {
       const ty1: Type = { tag: "Number" };
       const ty2: Type = { tag: "Func", params: [], retType: { tag: "Number" } };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
   });
 
@@ -59,7 +59,7 @@ describe("typeEq", () => {
         params: [],
         retType: { tag: "Boolean" },
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns false for function types with different return types", () => {
@@ -69,7 +69,7 @@ describe("typeEq", () => {
         retType: { tag: "Boolean" },
       };
       const ty2: Type = { tag: "Func", params: [], retType: { tag: "Number" } };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns true for function types with same single parameter", () => {
@@ -83,7 +83,7 @@ describe("typeEq", () => {
         params: [{ name: "y", type: { tag: "Number" } }],
         retType: { tag: "Boolean" },
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns false for function types with different parameter types", () => {
@@ -97,7 +97,7 @@ describe("typeEq", () => {
         params: [{ name: "x", type: { tag: "Boolean" } }],
         retType: { tag: "Boolean" },
       };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns false for function types with different parameter counts", () => {
@@ -114,7 +114,7 @@ describe("typeEq", () => {
         ],
         retType: { tag: "Boolean" },
       };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns true for function types with multiple same parameters", () => {
@@ -134,13 +134,13 @@ describe("typeEq", () => {
         ],
         retType: { tag: "Number" },
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns false for non-Func vs Func", () => {
       const ty1: Type = { tag: "Number" };
       const ty2: Type = { tag: "Func", params: [], retType: { tag: "Number" } };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns true for nested function types", () => {
@@ -160,7 +160,7 @@ describe("typeEq", () => {
         }],
         retType: { tag: "Boolean" },
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns false for nested function types with different inner return types", () => {
@@ -180,7 +180,7 @@ describe("typeEq", () => {
         }],
         retType: { tag: "Boolean" },
       };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns true for complex nested function types", () => {
@@ -205,7 +205,7 @@ describe("typeEq", () => {
         ],
         retType: innerFunc,
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
   });
 
@@ -213,7 +213,7 @@ describe("typeEq", () => {
     it("returns true for empty Object types", () => {
       const ty1: Type = { tag: "Object", props: [] };
       const ty2: Type = { tag: "Object", props: [] };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns true for Object types with same properties in same order", () => {
@@ -231,7 +231,7 @@ describe("typeEq", () => {
           { name: "y", type: { tag: "Boolean" } },
         ],
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns true for Object types with same properties in different order", () => {
@@ -249,7 +249,7 @@ describe("typeEq", () => {
           { name: "x", type: { tag: "Number" } },
         ],
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns false for Object types with different property counts", () => {
@@ -264,7 +264,7 @@ describe("typeEq", () => {
           { name: "y", type: { tag: "Boolean" } },
         ],
       };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns false for Object types with different property names", () => {
@@ -276,7 +276,7 @@ describe("typeEq", () => {
         tag: "Object",
         props: [{ name: "y", type: { tag: "Number" } }],
       };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns false for Object types with different property types", () => {
@@ -288,19 +288,19 @@ describe("typeEq", () => {
         tag: "Object",
         props: [{ name: "x", type: { tag: "Boolean" } }],
       };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns false for Object vs non-Object types", () => {
       const ty1: Type = { tag: "Object", props: [] };
       const ty2: Type = { tag: "Number" };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns false for non-Object vs Object types", () => {
       const ty1: Type = { tag: "Number" };
       const ty2: Type = { tag: "Object", props: [] };
-      expect(typeEq(ty1, ty2)).toBe(false);
+      expect(isEqualNaive(ty1, ty2)).toBe(false);
     });
 
     it("returns true for Object types with function properties", () => {
@@ -317,7 +317,7 @@ describe("typeEq", () => {
         tag: "Object",
         props: [{ name: "method", type: funcType }],
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
 
     it("returns true for nested Object types", () => {
@@ -333,7 +333,7 @@ describe("typeEq", () => {
         tag: "Object",
         props: [{ name: "nested", type: innerObj }],
       };
-      expect(typeEq(ty1, ty2)).toBe(true);
+      expect(isEqualNaive(ty1, ty2)).toBe(true);
     });
   });
 });

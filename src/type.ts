@@ -4,9 +4,11 @@ export type Type =
   | { tag: "Boolean" }
   | { tag: "Number" }
   | { tag: "Func"; params: Param[]; retType: Type }
-  | { tag: "Object"; props: PropertyType[] };
+  | { tag: "Object"; props: PropertyType[] }
+  | { tag: "Rec"; name: string; type: Type }
+  | { tag: "TypeVar"; name: string };
 
-export const typeEq = (ty1: Type, ty2: Type): boolean => {
+export const isEqualNaive = (ty1: Type, ty2: Type): boolean => {
   switch (ty2.tag) {
     case "Boolean":
     case "Number":
@@ -15,11 +17,11 @@ export const typeEq = (ty1: Type, ty2: Type): boolean => {
       if (ty1.tag !== "Func") return false;
       if (ty1.params.length !== ty2.params.length) return false;
       for (let i = 0; i < ty1.params.length; i++) {
-        if (!typeEq(ty1.params[i].type, ty2.params[i].type)) {
+        if (!isEqualNaive(ty1.params[i].type, ty2.params[i].type)) {
           return false;
         }
       }
-      return typeEq(ty1.retType, ty2.retType);
+      return isEqualNaive(ty1.retType, ty2.retType);
     }
     case "Object": {
       if (ty1.tag !== "Object") return false;
@@ -27,12 +29,15 @@ export const typeEq = (ty1: Type, ty2: Type): boolean => {
       const ty1PropsMap = new Map(ty1.props.map((p) => [p.name, p.type]));
       for (const prop of ty2.props) {
         const ty = ty1PropsMap.get(prop.name);
-        if (ty == null || !typeEq(ty, prop.type)) {
+        if (ty == null || !isEqualNaive(ty, prop.type)) {
           return false;
         }
       }
       return true;
     }
+    case "Rec":
+    case "TypeVar":
+      return false; // TODO
   }
 };
 
@@ -66,6 +71,9 @@ export const isSubTypeOf = (ty: Type, otherTy: Type): boolean => {
       const tyProps = new Set([...ty.props.map((p) => p.name)]);
       return otherTy.props.every((p) => tyProps.has(p.name));
     }
+    case "Rec":
+    case "TypeVar":
+      return false; // TODO
   }
 };
 
