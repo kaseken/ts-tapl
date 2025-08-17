@@ -1,6 +1,6 @@
 import { error } from "npm:tiny-ts-parser";
 import { Term } from "./term.ts";
-import { Type, TypeEnv, typeEq } from "./type.ts";
+import { isSubTypeOf, Type, TypeEnv, typeEq } from "./type.ts";
 
 export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
   switch (t.tag) {
@@ -56,7 +56,7 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
       }
       for (let i = 0; i < t.args.length; i++) {
         const argTy = typecheck(t.args[i], tyEnv);
-        if (!typeEq(argTy, funcTy.params[i].type)) {
+        if (!isSubTypeOf(argTy, funcTy.params[i].type)) {
           error("parameter type mismatch", t);
         }
       }
