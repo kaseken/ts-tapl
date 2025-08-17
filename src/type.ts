@@ -49,7 +49,7 @@ const isEqualSub = (ty: Type, otherTy: Type, seen: [Type, Type][]): boolean => {
       return true;
     }
     case "TypeVar": {
-      throw new Error("unreachable");
+      throw new Error("unreachable.");
     }
     case "TypeAbs": {
       throw new Error("unimplemented.");
