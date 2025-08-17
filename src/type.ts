@@ -24,21 +24,47 @@ export const typeEq = (ty1: Type, ty2: Type): boolean => {
     case "Object": {
       if (ty1.tag !== "Object") return false;
       if (ty1.props.length !== ty2.props.length) return false;
-      const ty1Props = [...ty1.props].sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      const ty2Props = [...ty2.props].sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      for (let i = 0; i < ty1Props.length; i++) {
-        if (
-          ty1Props[i].name !== ty2Props[i].name ||
-          !typeEq(ty1Props[i].type, ty2Props[i].type)
-        ) {
+      const ty1PropsMap = new Map(ty1.props.map((p) => [p.name, p.type]));
+      for (const prop of ty2.props) {
+        const ty = ty1PropsMap.get(prop.name);
+        if (ty == null || !typeEq(ty, prop.type)) {
           return false;
         }
       }
       return true;
+    }
+  }
+};
+
+export const isSubTypeOf = (ty: Type, otherTy: Type): boolean => {
+  switch (otherTy.tag) {
+    case "Boolean":
+    case "Number":
+      return ty.tag === otherTy.tag;
+    case "Func": {
+      if (ty.tag !== otherTy.tag) {
+        return false;
+      }
+      if (!isSubTypeOf(ty.retType, otherTy.retType)) {
+        return false;
+      }
+      if (ty.params.length !== otherTy.params.length) {
+        return false;
+      }
+      for (let i = 0; i < ty.params.length; i++) {
+        // NOTE: Contravariant
+        if (!isSubTypeOf(otherTy.params[i].type, ty.params[i].type)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    case "Object": {
+      if (ty.tag !== otherTy.tag) {
+        return false;
+      }
+      const tyProps = new Set([...ty.props.map((p) => p.name)]);
+      return otherTy.props.every((p) => tyProps.has(p.name));
     }
   }
 };

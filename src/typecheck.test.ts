@@ -5,6 +5,7 @@ import {
   parseBasic,
   parseObj,
   parseRecFunc,
+  parseSub,
 } from "npm:tiny-ts-parser";
 import { typecheck } from "./typecheck.ts";
 
@@ -347,23 +348,27 @@ describe("typecheck", () => {
     });
 
     it("throws exception when accessing property on non-object", () => {
-      expect(() => typecheck(
-        parseObj(`
+      expect(() =>
+        typecheck(
+          parseObj(`
         const x = 42;
         x.foo;
       `),
-        {},
-      )).toThrow("object type expected");
+          {},
+        )
+      ).toThrow("object type expected");
     });
 
     it("throws exception for unknown property name", () => {
-      expect(() => typecheck(
-        parseObj(`
+      expect(() =>
+        typecheck(
+          parseObj(`
         const x = { foo: 1 };
         x.bar;
       `),
-        {},
-      )).toThrow("unknown property name: bar");
+          {},
+        )
+      ).toThrow("unknown property name: bar");
     });
   });
 
@@ -378,6 +383,30 @@ describe("typecheck", () => {
       `;
       const result = typecheck(parseBasic(program), {});
       expect(result).toEqual({ tag: "Number" });
+    });
+  });
+
+  describe("structural subtyping", () => {
+    it("allows passing object with extra properties to function", () => {
+      const program = `
+        const f = (x: { foo: number }) => x.foo;
+        const x = { foo: 1, bar: true };
+        f(x)
+      `;
+      const result = typecheck(parseSub(program), {});
+      expect(result).toEqual({ tag: "Number" });
+    });
+
+    it("throws error when function return type is missing required properties", () => {
+      const program = `
+        type F = () => { foo: number; bar: boolean };
+        const f = (x: F) => x().bar;
+        const g = () => ({ foo: 1 });
+        f(g)
+      `;
+      expect(() => typecheck(parseSub(program), {})).toThrow(
+        "parameter type mismatch",
+      );
     });
   });
 });
