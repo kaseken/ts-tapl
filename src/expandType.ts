@@ -9,7 +9,8 @@ export const simplifyType = (ty: Type): Type => {
     case "Number":
     case "Func":
     case "Object":
-    case "TypeVar": {
+    case "TypeVar":
+    case "TypeAbs": {
       return ty;
     }
   }
@@ -42,6 +43,9 @@ export const expandType = (ty: Type, tyVarName: string, repTy: Type): Type => {
     }
     case "TypeVar": {
       return ty.name === tyVarName ? repTy : ty;
+    }
+    case "TypeAbs": {
+      throw new Error("unimplemented.");
     }
   }
 };

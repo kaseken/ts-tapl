@@ -107,5 +107,9 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
       }
       return typecheck(t.rest, { ...tyEnv, [t.funcName]: funcTy });
     }
+    case "typeAbs":
+    case "typeApp": {
+      throw new Error("unimplemented.");
+    }
   }
 };

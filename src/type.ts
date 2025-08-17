@@ -7,7 +7,8 @@ export type Type =
   | { tag: "Func"; params: Param[]; retType: Type }
   | { tag: "Object"; props: PropertyType[] }
   | { tag: "Rec"; name: string; type: Type }
-  | { tag: "TypeVar"; name: string };
+  | { tag: "TypeVar"; name: string }
+  | { tag: "TypeAbs"; typeParams: string[]; type: Type };
 
 const isEqualSub = (ty: Type, otherTy: Type, seen: [Type, Type][]): boolean => {
   for (const [ty1, ty2] of seen) {
@@ -49,6 +50,9 @@ const isEqualSub = (ty: Type, otherTy: Type, seen: [Type, Type][]): boolean => {
     }
     case "TypeVar": {
       throw new Error("unreachable");
+    }
+    case "TypeAbs": {
+      throw new Error("unimplemented.");
     }
   }
 };
@@ -106,6 +110,9 @@ const isEqualNaive = (
       }
       return tyVarMap[ty1.name] === ty2.name;
     }
+    case "TypeAbs": {
+      throw new Error("unimplemented.");
+    }
   }
 };
 
@@ -142,6 +149,9 @@ export const isSubTypeOf = (ty: Type, otherTy: Type): boolean => {
     case "Rec":
     case "TypeVar":
       throw new Error("unimplemented");
+    case "TypeAbs": {
+      throw new Error("unimplemented.");
+    }
   }
 };
 
