@@ -141,7 +141,7 @@ export const isSubTypeOf = (ty: Type, otherTy: Type): boolean => {
     }
     case "Rec":
     case "TypeVar":
-      return false; // TODO
+      throw new Error("unimplemented");
   }
 };
 

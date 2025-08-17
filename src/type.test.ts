@@ -547,4 +547,84 @@ describe("isSubTypeOf", () => {
       expect(isSubTypeOf(ty1, ty2)).toBe(false);
     });
   });
+
+  describe("recursive types with isEqual", () => {
+    it("should handle mutually recursive types correctly without infinite recursion", () => {
+      // µ A. { a: { b: A } }
+      const typeA: Type = {
+        tag: "Rec",
+        name: "A",
+        type: {
+          tag: "Object",
+          props: [
+            {
+              name: "a",
+              type: {
+                tag: "Object",
+                props: [
+                  {
+                    name: "b",
+                    type: { tag: "TypeVar", name: "A" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+
+      // { a: (µ B. { b: { a: B } }) }
+      const typeB: Type = {
+        tag: "Object",
+        props: [
+          {
+            name: "a",
+            type: {
+              tag: "Rec",
+              name: "B",
+              type: {
+                tag: "Object",
+                props: [
+                  {
+                    name: "b",
+                    type: {
+                      tag: "Object",
+                      props: [
+                        {
+                          name: "a",
+                          type: { tag: "TypeVar", name: "B" },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      };
+
+      // These types are intuitively equal but cause infinite recursion in naive comparison
+      // The current isEqual implementation should handle this correctly with the seen array
+      const result = isEqual(typeA, typeB);
+      expect(result).toBe(true);
+    });
+
+    it("should throw error for TypeVar in otherTy position (unreachable case)", () => {
+      const typeA: Type = { tag: "Number" };
+      const typeB: Type = { tag: "TypeVar", name: "T" };
+
+      // This should hit the "unreachable" case in isEqualSub
+      // TypeVar should not appear in the otherTy position after simplification
+      expect(() => isEqual(typeA, typeB)).toThrow("unreachable");
+    });
+
+    it("should throw error for standalone TypeVar comparison", () => {
+      const typeA: Type = { tag: "TypeVar", name: "A" };
+      const typeB: Type = { tag: "TypeVar", name: "B" };
+
+      // Both TypeVars in comparison should hit the unreachable case
+      expect(() => isEqual(typeA, typeB)).toThrow("unreachable");
+    });
+  });
 });
