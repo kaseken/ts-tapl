@@ -22,4 +22,6 @@ export type Term =
     retType: Type;
     body: Term;
     rest: Term;
-  };
+  }
+  | { tag: "typeAbs"; typeParams: string[]; body: Term }
+  | { tag: "typeApp"; typeAbs: Term; typeArgs: Type[] };

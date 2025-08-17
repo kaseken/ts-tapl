@@ -4,6 +4,7 @@ import {
   parseArith,
   parseBasic,
   parseObj,
+  parsePoly,
   parseRec,
   parseRecFunc,
   parseSub,
@@ -442,6 +443,143 @@ describe("typecheck", () => {
               },
             },
           ],
+        },
+      });
+    });
+  });
+
+  describe("generics", () => {
+    it("handles polymorphic identity function with enableGenerics", () => {
+      const program = `<T>(x: T) => x`;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "TypeAbs",
+        typeParams: ["T"],
+        type: {
+          tag: "Func",
+          params: [{ name: "x", type: { tag: "TypeVar", name: "T" } }],
+          retType: { tag: "TypeVar", name: "T" },
+        },
+      });
+    });
+
+    it("handles type application correctly", () => {
+      const program = `
+        const id = <T>(x: T) => x;
+        id<number>
+      `;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "Func",
+        params: [{ name: "x", type: { tag: "Number" } }],
+        retType: { tag: "Number" },
+      });
+    });
+
+    it("handles polymorphic select function with type application", () => {
+      const program = `
+        const select = <T>(cond: boolean, a: T, b: T) => (cond ? a : b);
+        const selectNumber = select<number>;
+        selectNumber;
+      `;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "Func",
+        params: [
+          { name: "cond", type: { tag: "Boolean" } },
+          { name: "a", type: { tag: "Number" } },
+          { name: "b", type: { tag: "Number" } },
+        ],
+        retType: { tag: "Number" },
+      });
+    });
+
+    it("handles polymorphic select function with boolean type application", () => {
+      const program = `
+        const select = <T>(cond: boolean, a: T, b: T) => (cond ? a : b);
+        const selectBoolean = select<boolean>;
+        selectBoolean;
+      `;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "Func",
+        params: [
+          { name: "cond", type: { tag: "Boolean" } },
+          { name: "a", type: { tag: "Boolean" } },
+          { name: "b", type: { tag: "Boolean" } },
+        ],
+        retType: { tag: "Boolean" },
+      });
+    });
+
+    it("handles polymorphic function with nested type abstraction parameter", () => {
+      const program = `
+        const foo = <T>(arg1: T, arg2: <T>(x: T) => boolean) => true;
+        foo<number>;
+      `;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "Func",
+        params: [
+          { name: "arg1", type: { tag: "Number" } },
+          {
+            name: "arg2",
+            type: {
+              tag: "TypeAbs",
+              typeParams: ["T"],
+              type: {
+                tag: "Func",
+                params: [{ name: "x", type: { tag: "TypeVar", name: "T" } }],
+                retType: { tag: "Boolean" },
+              },
+            },
+          },
+        ],
+        retType: { tag: "Boolean" },
+      });
+    });
+
+    it("handles complex nested polymorphic functions", () => {
+      const program = `
+        const foo = <T>(arg1: T, arg2: <U>(x: T, y: U) => boolean) => true;
+        const bar = <U>() => foo<U>;
+        bar;
+      `;
+
+      const result = typecheck(parsePoly(program), {}, [], true);
+      expect(result).toEqual({
+        tag: "TypeAbs",
+        typeParams: ["U"],
+        type: {
+          tag: "Func",
+          params: [],
+          retType: {
+            tag: "Func",
+            params: [
+              { name: "arg1", type: { tag: "TypeVar", name: "U" } },
+              {
+                name: "arg2",
+                type: {
+                  tag: "TypeAbs",
+                  typeParams: ["U@1"],
+                  type: {
+                    tag: "Func",
+                    params: [
+                      { name: "x", type: { tag: "TypeVar", name: "U" } },
+                      { name: "y", type: { tag: "TypeVar", name: "U@1" } },
+                    ],
+                    retType: { tag: "Boolean" },
+                  },
+                },
+              },
+            ],
+            retType: { tag: "Boolean" },
+          },
         },
       });
     });
