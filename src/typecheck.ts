@@ -1,6 +1,7 @@
 import { error } from "npm:tiny-ts-parser";
 import { Term } from "./term.ts";
 import { isEqual, isSubTypeOf, Type, TypeEnv } from "./type.ts";
+import { simplifyType } from "./expandType.ts";
 
 export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
   switch (t.tag) {
@@ -9,7 +10,7 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
     case "false":
       return { tag: "Boolean" };
     case "if": {
-      const condTy = typecheck(t.cond, tyEnv);
+      const condTy = simplifyType(typecheck(t.cond, tyEnv));
       if (condTy.tag !== "Boolean") {
         error("Boolean expected.", t);
       }
@@ -23,11 +24,11 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
     case "number":
       return { tag: "Number" };
     case "add": {
-      const leftTy = typecheck(t.left, tyEnv);
+      const leftTy = simplifyType(typecheck(t.left, tyEnv));
       if (leftTy.tag !== "Number") {
         error("Number expected.", t);
       }
-      const rightTy = typecheck(t.right, tyEnv);
+      const rightTy = simplifyType(typecheck(t.right, tyEnv));
       if (rightTy.tag !== "Number") {
         error("Number expected.", t);
       }
@@ -47,7 +48,7 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
       return { tag: "Func", params: t.params, retType };
     }
     case "call": {
-      const funcTy = typecheck(t.func, tyEnv);
+      const funcTy = simplifyType(typecheck(t.func, tyEnv));
       if (funcTy.tag !== "Func") {
         error("function type expected.", t);
       }
@@ -79,7 +80,7 @@ export const typecheck = (t: Term, tyEnv: TypeEnv): Type => {
       return { tag: "Object", props };
     }
     case "objectGet": {
-      const objectTy = typecheck(t.obj, tyEnv);
+      const objectTy = simplifyType(typecheck(t.obj, tyEnv));
       if (objectTy.tag !== "Object") {
         error("object type expected", t.obj);
       }
